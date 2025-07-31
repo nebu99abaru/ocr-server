@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, File, UploadFile, BackgroundTasks
 from uuid import uuid4
 from pathlib import Path
@@ -11,22 +10,24 @@ RESULT_DIR = Path("/data/results")
 
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
-    # Create temporary file with random name
-    temp_id = str(uuid4())
-    pdf_path = UPLOAD_DIR / f"{temp_id}.pdf"
+    import uuid
 
-    # Save file before launching the task
+    # 1. Generate a unique ID (we'll use this as the job_id and filenames)
+    job_id = str(uuid.uuid4())
+
+    # 2. Define file paths
+    pdf_path = UPLOAD_DIR / f"{job_id}.pdf"
+    txt_path = RESULT_DIR / f"{job_id}.txt"
+
+    # 3. Save uploaded PDF
     with open(pdf_path, "wb") as f:
         f.write(await file.read())
 
-    # Create OCR job AFTER file is saved
-    # Use Celery task.id as the actual filename we track
-    task = ocr_pdf.delay(
-        str(pdf_path),
-        str(RESULT_DIR / f"{task.id}.txt")
-    )
+    # 4. Launch OCR task
+    task = ocr_pdf.delay(str(pdf_path), str(txt_path))
 
-    return {"job_id": task.id}
+    # 5. Return the UUID that ties everything together
+    return {"job_id": job_id}
 
 @app.get("/status/{job_id}")
 def get_status(job_id: str):
