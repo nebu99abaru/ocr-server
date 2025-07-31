@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/data/uploads
+      - ./results:/data/results
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    volumes:
+      - ./uploads:/data/uploads
+      - ./results:/data/results
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7
