@@ -24,12 +24,9 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     return {"job_id": job_id, "task_id": task.id}
 
-
 @app.get("/status/{job_id}")
 def get_status(job_id: str):
-    res = AsyncResult(job_id)
-    return {"job_id": job_id, "status": res.status}
-
+    return {"job_id": job_id, "status": AsyncResult(job_id).status}
 
 @app.get("/result/{job_id}")
 def get_result(job_id: str):
