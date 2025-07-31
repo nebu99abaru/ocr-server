@@ -1,0 +1,7 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN apt-get update && apt-get install -y ocrmypdf tesseract-ocr ghostscript && \
+    pip install -r requirements.txt
+COPY app/ .
+CMD ["celery", "-A", "worker", "worker", "--loglevel=info"]
